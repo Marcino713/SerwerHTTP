@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>#A01 - zawartość folderu</title>
+<style type="text/css">
+*{
+font-family:Arial,sans-serif;
+}
+td{
+padding-right:10px;
+padding-bottom:3px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Folder #A01</h2>
+
+<table>
+<tr>
+<th>Plik</th>
+<th>Rozmiar</th>
+<th>Data modyfikacji</th>
+</tr>
+#B01<tr>
+<td><a href="#C01">#C01</a></td>
+<td>#C02</td>
+<td>#C03</td>
+</tr>
+#B02
+</table>
+
+</body>
+
+</html>

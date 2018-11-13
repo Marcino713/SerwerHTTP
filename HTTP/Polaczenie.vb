@@ -350,12 +350,16 @@ Public Class Polaczenie
         Select Case roz
             Case "html", "htm" : typ = MIME_TEXT_HTML
             Case "css" : typ = MIME_TEXT_CSS
+            Case "cpp", "c", "hpp", "h" : typ = MIME_TEXT_XC
             Case "js" : typ = MIME_APPLICATION_JAVASCRIPT
+            Case "json" : typ = MIME_APPLICATION_JSON
+            Case "xml" : typ = MIME_APPLICATION_XML
             Case "jpg", "jpeg" : typ = MIME_IMAGE_JPEG
             Case "png" : typ = MIME_IMAGE_PNG
             Case "gif" : typ = MIME_IMAGE_GIF
             Case "ico" : typ = MIME_IMAGE_ICON
             Case "txt" : typ = MIME_TEXT_PLAIN
+            Case "zip" : typ = MIME_APPLICATION_ZIP
             Case Else
                 typ = MIME_APPLICATION_OCTET_STREAM
                 If SerwerHTTP.Ustawienia.ZapiszBledy Then bledy.DodajBlad(TypBledu.Typ_pliku, roz)

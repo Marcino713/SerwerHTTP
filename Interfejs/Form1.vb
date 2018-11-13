@@ -67,8 +67,7 @@ Friend Class wndOkno
         'CzytajArgumenty(pol, test)
         'test.Koniec += 1
         'End If
-
-        pol.WyslijPlik(True)
+        If Not pol.WyslijFolder Then pol.WyslijPlik(True)
     End Sub
 
     Private Sub Funkcja2(pol As Polaczenie, dane As TestoweZapytanie)

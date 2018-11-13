@@ -6,6 +6,7 @@
 
     Friend Sub New(Sciezka As String)
         Me.Sciezka = Sciezka
+        If Not Sciezka.EndsWith(Path.DirectorySeparatorChar) Then Sciezka &= Path.DirectorySeparatorChar
     End Sub
 
     Friend ReadOnly Property JestBlad As Boolean
@@ -54,7 +55,7 @@
 
         Try
             Dim bajty As Byte() = New UTF8Encoding().GetBytes(stb.ToString)
-            Dim fs As New FileStream(Sciezka & "\http " & Now.ToString("d-MM-yyyy H-mm-ss,fffff") & ".txt", FileMode.Create)
+            Dim fs As New FileStream(Sciezka & "http " & Now.ToString("d-MM-yyyy H-mm-ss,fffff") & ".txt", FileMode.Create)
             fs.Write(bajty, 0, bajty.Length)
             fs.Close()
             fs.Dispose()

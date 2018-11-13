@@ -40,3 +40,9 @@ Public Structure Ciasteczko
         Sciezka = ""
     End Sub
 End Structure
+
+Public Structure DanePliku
+    Public Nazwa As String
+    Public Rozmiar As Long
+    Public Data As Date
+End Structure

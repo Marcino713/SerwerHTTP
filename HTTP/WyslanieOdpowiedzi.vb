@@ -43,6 +43,122 @@
         End If
     End Sub
 
+    Public Function WyslijFolder() As Boolean
+        Dim Sciezka As String = Path.GetFullPath(SerwerHTTP.Ustawienia.FolderSerwisu & Adres.Replace("/"c, Path.DirectorySeparatorChar))
+        If Not Directory.Exists(Sciezka) Then Return False
+        If Not Sciezka.StartsWith(SerwerHTTP.Ustawienia.FolderSerwisu) Then Return False
+
+        Dim Nazwy As String() = Directory.GetDirectories(Sciezka)
+        Dim Zawartosc As New List(Of DanePliku)
+
+        Zawartosc.Add(New DanePliku With {.Nazwa = "./", .Rozmiar = 0, .Data = Directory.GetLastWriteTime(Sciezka)})
+        If Sciezka <> SerwerHTTP.Ustawienia.FolderSerwisu Then
+            Zawartosc.Add(New DanePliku With {.Nazwa = "../", .Rozmiar = 0, .Data = Directory.GetLastWriteTime(Path.GetFullPath(Sciezka & ".."))})
+        End If
+
+        Dim i As Integer
+        For i = 0 To Nazwy.Length - 1
+            Dim dp As New DanePliku
+            dp.Nazwa = Path.GetFileName(Nazwy(i)) & "/"
+            dp.Rozmiar = 0
+            dp.Data = Directory.GetLastWriteTime(Nazwy(i))
+            Zawartosc.Add(dp)
+        Next
+
+        Nazwy = Directory.GetFiles(Sciezka)
+        For i = 0 To Nazwy.Length - 1
+            Dim dp As New DanePliku
+            Dim fi As New FileInfo(Nazwy(i))
+
+            dp.Nazwa = Path.GetFileName(Nazwy(i))
+            dp.Rozmiar = fi.Length
+            dp.Data = fi.LastWriteTime
+            Zawartosc.Add(dp)
+        Next
+
+
+        Dim sth As String = New UTF8Encoding().GetString(My.Resources.Folder)
+        Dim t As New StringBuilder
+        Dim zaw As DanePliku() = Zawartosc.ToArray()
+
+        i = 0
+        Dim id As String = ""
+        Dim ix As Integer = 0
+        Dim petla As Integer = -1
+
+        While i < sth.Length
+
+            If sth(i) = "#" Then
+                If i + 3 < sth.Length Then
+                    id = sth(i + 2).ToString() & sth(i + 3).ToString()
+                Else
+                    t.Append(sth(i))
+                    i += 1
+                    Continue While
+                End If
+
+
+                Select Case sth(i + 1)
+                    Case "A"c    'Zmienna globalna
+
+                        Select Case id
+                            Case "01"
+                                t.Append(Adres)
+
+                        End Select
+
+                    Case "B"c   'Petla
+
+                        Select Case id
+                            Case "01" 'Poczatek
+                                petla = i
+                                ix = 0
+
+                            Case "02" 'Koniec
+                                If petla > -1 Then
+                                    ix += 1
+                                    If ix < zaw.Length Then i = petla Else ix = 0
+                                End If
+                        End Select
+
+                    Case "C"c    'Zmienna petlowa
+
+                        If ix < zaw.Length AndAlso ix > -1 Then
+                            Select Case id
+
+                                Case "01"
+                                    t.Append(zaw(ix).Nazwa)
+
+                                Case "02"
+                                    t.Append(RozmiarToString(zaw(ix).Rozmiar))
+
+                                Case "03"
+                                    t.Append(zaw(ix).Data.ToString(DATA_FOLDER))
+
+
+                            End Select
+                        End If
+
+                End Select
+
+                i += 3
+            Else
+                t.Append(sth(i))
+            End If
+
+            i += 1
+
+        End While
+
+        Dim b As Byte() = New UTF8Encoding().GetBytes(t.ToString())
+        _Odpowiedz.ContentType = MIME_TEXT_HTML
+        _Odpowiedz.Length = b.Length
+        _ZawartoscOdpowiedzi = b
+        Wyslij200_OK()
+
+        Return True
+    End Function
+
     Public Sub Wyslij200_OK()
         If _WyslanoOdpowiedz Then Exit Sub
         _WyslanoOdpowiedz = True
@@ -242,5 +358,21 @@
 
         If Metoda <> MetodaHTTP.HEAD Then bw.Write(b)
     End Sub
+
+    Private Function RozmiarToString(rozm As Long) As String
+        If rozm = 0 Then Return "---"
+        If rozm < 1024 Then Return rozm & " B"
+
+        Dim r As Double = rozm / 1024.0
+        Dim jedn As String() = {" kB", " MB", " GB", " TB"}
+
+        For i As Integer = 0 To jedn.Length - 1
+            If r < 1024.0 Then Return r.ToString("f2") & jedn(i)
+            r /= 1024.0
+        Next
+
+        Return r.ToString("f2") & jedn(jedn.Length - 1)
+
+    End Function
 
 End Class
