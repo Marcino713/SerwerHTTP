@@ -16,6 +16,7 @@
     Private _UpgradeInsecureRequests As String = ""
     Private _Pragma As String = ""
     Private _XRequestedWith As String = ""
+    Private _Authorization As DaneAutoryzacji = Nothing
     Private _Cookie As ZmiennaHTTP() = Nothing
 
     Public Property Host As String
@@ -171,6 +172,15 @@
         End Set
     End Property
 
+    Public Property Authorization As DaneAutoryzacji
+        Get
+            Return _Authorization
+        End Get
+        Friend Set(value As DaneAutoryzacji)
+            _Authorization = value
+        End Set
+    End Property
+
     Public Property Cookie As ZmiennaHTTP()
         Get
             If _Cookie IsNot Nothing AndAlso _Cookie.Length = 0 Then Return Nothing
@@ -181,4 +191,68 @@
         End Set
     End Property
 
+End Class
+
+Public Class DaneAutoryzacji
+    Private _Username As String = ""
+    Private _Realm As String = ""
+    Private _Nonce As String = ""
+    Private _Uri As String = ""
+    Private _Response As String = ""
+    Private _Opaque As String = ""
+    Private _Password As String = ""
+    Private _Method As MetodaHTTP = MetodaHTTP.Nieznana
+    Private _Type As MetodaUwierzytelniania = MetodaUwierzytelniania.Prosta
+
+    Public ReadOnly Property Uzytkownik As String
+        Get
+            Return _Username
+        End Get
+    End Property
+
+    Public ReadOnly Property Metoda As MetodaUwierzytelniania
+        Get
+            Return _Type
+        End Get
+    End Property
+
+    Public Sub New(Nazwa As String, Haslo As String)
+        _Type = MetodaUwierzytelniania.Prosta
+        _Username = Nazwa
+        _Password = Haslo
+    End Sub
+
+    Public Sub New(Username As String, Realm As String, Nonce As String, Uri As String, Response As String, Opaque As String, Method As MetodaHTTP)
+        _Type = MetodaUwierzytelniania.Zlozona
+        _Username = Username
+        _Realm = Realm
+        _Nonce = Nonce
+        _Uri = Uri
+        _Response = Response
+        _Opaque = Opaque
+        _Method = Method
+    End Sub
+
+    Public Function CzyZgodneHaslo(Haslo As String) As Boolean
+        If _Type = MetodaUwierzytelniania.Prosta Then
+            Return Haslo = _Password
+        ElseIf _Type = MetodaUwierzytelniania.Zlozona Then
+            Dim metoda As String = ""
+            Select Case _Method
+                Case MetodaHTTP.GET : metoda = "GET"
+                Case MetodaHTTP.POST : metoda = "POST"
+                Case MetodaHTTP.HEAD : metoda = "HEAD"
+                Case MetodaHTTP.PUT : metoda = "PUT"
+                Case MetodaHTTP.DELETE : metoda = "DELETE"
+            End Select
+            If metoda = "" Then Return False
+
+            Dim s1 As String = ObliczMD5(_Username & ":" & _Realm & ":" & Haslo)
+            Dim s2 As String = ObliczMD5(metoda & ":" & _Uri)
+            Dim s3 As String = ObliczMD5(s1 & ":" & _Nonce & ":" & s2)
+            Return s3 = _Response
+        End If
+
+        Return False
+    End Function
 End Class

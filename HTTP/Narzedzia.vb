@@ -26,4 +26,32 @@
         Return New Date(Data.Year, Data.Month, Data.Day, Data.Hour, Data.Minute, Data.Second)
     End Function
 
+    Public Function BajtyDoHex(dane As Byte()) As String
+        Dim sBuilder As StringBuilder = New StringBuilder()
+        For i As Integer = 0 To dane.Length - 1
+            sBuilder.Append(dane(i).ToString("x2"))
+        Next
+        Return sBuilder.ToString()
+    End Function
+
+    Public Function ObliczMD5(tekst As String) As String
+        Return BajtyDoHex(Security.Cryptography.MD5.Create().ComputeHash(New UTF8Encoding().GetBytes(tekst)))
+    End Function
+
+    Public Function RozmiarToString(rozm As Long) As String
+        If rozm = 0 Then Return "---"
+        If rozm < 1024 Then Return rozm & " B"
+
+        Dim r As Double = rozm / 1024.0
+        Dim jedn As String() = {" kB", " MB", " GB", " TB"}
+
+        For i As Integer = 0 To jedn.Length - 1
+            If r < 1024.0 Then Return r.ToString("f2") & jedn(i)
+            r /= 1024.0
+        Next
+
+        Return r.ToString("f2") & jedn(jedn.Length - 1)
+
+    End Function
+
 End Module

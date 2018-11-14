@@ -67,7 +67,17 @@ Friend Class wndOkno
         'CzytajArgumenty(pol, test)
         'test.Koniec += 1
         'End If
-        If Not pol.WyslijFolder Then pol.WyslijPlik(True)
+
+        If pol.Zapytanie.Authorization Is Nothing Then
+            pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
+        Else
+            If pol.Zapytanie.Authorization.CzyZgodneHaslo("bb7") AndAlso pol.Zapytanie.Authorization.Metoda = MetodaUwierzytelniania.Zlozona Then
+                If Not pol.WyslijFolder Then pol.WyslijPlik(True)
+            Else
+                pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
+            End If
+
+        End If
     End Sub
 
     Private Sub Funkcja2(pol As Polaczenie, dane As TestoweZapytanie)

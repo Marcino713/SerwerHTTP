@@ -12,6 +12,11 @@ Public Enum MetodaHTTP
     DELETE = 16
 End Enum
 
+Public Enum MetodaUwierzytelniania
+    Prosta = 1
+    Zlozona = 2
+End Enum
+
 
 Public Structure ZmiennaHTTP
     Public Nazwa As String

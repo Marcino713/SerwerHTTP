@@ -210,6 +210,31 @@
         WyslijOpisBleduHTTP("400 Bad Request", "400.html")
     End Sub
 
+    Public Sub Wyslij401_Unauthorized(Komunikat As String, Metoda As MetodaUwierzytelniania)
+        If _WyslanoOdpowiedz Then Exit Sub
+        _WyslanoOdpowiedz = True
+
+        Zapytanie.Connection = "close"
+        WyslijPoczatek("401 Unauthorized")
+
+        Select Case Metoda
+            Case MetodaUwierzytelniania.Prosta
+                WyslijLinie("WWW-Authenticate: Basic realm=""" & Komunikat & """, charset=""UTF-8""")
+            Case MetodaUwierzytelniania.Zlozona
+                Dim rnd As New Random()
+                Dim nonce As String = ObliczMD5(Now.Millisecond.ToString() & rnd.Next().ToString)
+                Dim opaque As String = ObliczMD5(Now.Millisecond.ToString() & rnd.Next().ToString)
+
+                WyslijLinie("WWW-Authenticate: Digest realm=""" & Komunikat & """, charset=""UTF-8"", nonce=""" & nonce & """, opaque=""" & opaque & """")
+        End Select
+
+        WyslijLinie()
+    End Sub
+
+    Public Sub Wyslij402_PaymentRequired()
+        WyslijOpisBleduHTTP("402 Payment Required", "402.html")
+    End Sub
+
     Public Sub Wyslij403_Forbidden()
         WyslijOpisBleduHTTP("403 Forbidden", "403.html")
     End Sub
@@ -358,21 +383,5 @@
 
         If Metoda <> MetodaHTTP.HEAD Then bw.Write(b)
     End Sub
-
-    Private Function RozmiarToString(rozm As Long) As String
-        If rozm = 0 Then Return "---"
-        If rozm < 1024 Then Return rozm & " B"
-
-        Dim r As Double = rozm / 1024.0
-        Dim jedn As String() = {" kB", " MB", " GB", " TB"}
-
-        For i As Integer = 0 To jedn.Length - 1
-            If r < 1024.0 Then Return r.ToString("f2") & jedn(i)
-            r /= 1024.0
-        Next
-
-        Return r.ToString("f2") & jedn(jedn.Length - 1)
-
-    End Function
 
 End Class

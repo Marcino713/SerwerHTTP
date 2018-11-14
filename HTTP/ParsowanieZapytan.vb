@@ -106,6 +106,7 @@
                 Case "upgrade-insecure-requests" : Zapytanie.UpgradeInsecureRequests = wartosc
                 Case "pragma" : Zapytanie.Pragma = wartosc
                 Case "x-requested-with" : Zapytanie.XRequestedWith = wartosc
+                Case "authorization" : PrzetworzUwierzytelnianie(wartosc)
                 Case "cookie"
 
                     Dim zmienna_http As String() = Mid(tekst, pozycja + 2).Trim.Split({"; "}, StringSplitOptions.None)
@@ -161,6 +162,82 @@
 
                 _ZmiennePOST = zmienne.ToArray()
 
+        End Select
+
+    End Sub
+
+    Private Sub PrzetworzUwierzytelnianie(NaglAuthorization As String)
+        Dim ix As Integer = NaglAuthorization.IndexOf(" "c)
+        If ix < 0 Then Return
+
+        Dim typ As String = NaglAuthorization.Substring(0, ix).ToLower
+        Select Case typ
+            Case "basic"
+                Dim tekst As String = New UTF8Encoding().GetString(Convert.FromBase64String(NaglAuthorization.Substring(ix).Trim))
+                Dim poz As Integer = tekst.IndexOf(":")
+                Dim nazwa As String = ""
+                Dim haslo As String = ""
+                If poz >= 0 Then
+                    nazwa = tekst.Substring(0, poz)
+                    haslo = tekst.Substring(poz + 1)
+                    Zapytanie.Authorization = New DaneAutoryzacji(nazwa, haslo)
+                End If
+
+            Case "digest"
+                Dim username As String = ""
+                Dim realm As String = ""
+                Dim nonce As String = ""
+                Dim uri As String = ""
+                Dim response As String = ""
+                Dim opaque As String = ""
+
+                Dim i As Integer = ix + 1
+                Dim nazwa As String = ""
+                Dim wart As String = ""
+                Dim sb As New StringBuilder
+
+                Do
+
+                    'Nazwa
+                    Do Until i >= NaglAuthorization.Length OrElse NaglAuthorization(i) = "="
+                        sb.Append(NaglAuthorization(i))
+                        i += 1
+                    Loop
+
+                    nazwa = sb.ToString().ToLower
+                    sb.Clear()
+
+                    i += 1
+                    If i >= NaglAuthorization.Length Then Exit Do
+                    If NaglAuthorization(i) = """" Then i += 1
+
+                    'Wartosc
+                    Do Until i >= NaglAuthorization.Length OrElse NaglAuthorization(i) = "," OrElse NaglAuthorization(i) = """"
+                        sb.Append(NaglAuthorization(i))
+                        i += 1
+                    Loop
+
+                    wart = sb.ToString()
+                    sb.Clear()
+
+                    Select Case nazwa
+                        Case "username" : username = wart
+                        Case "realm" : realm = wart
+                        Case "nonce" : nonce = wart
+                        Case "uri" : uri = wart
+                        Case "response" : response = wart
+                        Case "opaque" : opaque = wart
+                    End Select
+
+                    Do While i < NaglAuthorization.Length AndAlso (NaglAuthorization(i) = "," OrElse NaglAuthorization(i) = """" OrElse NaglAuthorization(i) = " " OrElse NaglAuthorization(i) = vbTab OrElse NaglAuthorization(i) = vbCr OrElse NaglAuthorization(i) = vbLf)
+                        i += 1
+                    Loop
+
+                    If i >= NaglAuthorization.Length Then Exit Do
+
+                Loop
+
+                Zapytanie.Authorization = New DaneAutoryzacji(username, realm, nonce, uri, response, opaque, _Metoda)
         End Select
 
     End Sub
