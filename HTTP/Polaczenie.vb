@@ -26,6 +26,8 @@ Public Class Polaczenie
     Private strumien As NetworkStream
     Private br As BinaryReader
     Private bw As BinaryWriter
+    Private strumienPlik As FileStream
+    Private bwp As BinaryWriter
     Private watek As Thread
 
     'Zapytanie
@@ -114,6 +116,10 @@ Public Class Polaczenie
         strumien = Klient.GetStream
         br = New BinaryReader(strumien)
         bw = New BinaryWriter(strumien)
+        If SerwerHTTP.Ustawienia.ZapiszDanePrzychodzace OrElse SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then
+            strumienPlik = SerwerHTTP.OtworzWolnyPlik
+            bwp = New BinaryWriter(strumienPlik)
+        End If
         watek = New Thread(AddressOf ObsluzKlienta)
         watek.Name = AdresIP
         watek.Start()
@@ -150,6 +156,30 @@ Public Class Polaczenie
             br.Dispose()
         Catch
         End Try
+
+        If bwp IsNot Nothing Then
+            Try
+                bwp.Close()
+            Catch
+            End Try
+
+            Try
+                bwp.Dispose()
+            Catch
+            End Try
+        End If
+
+        If strumienPlik IsNot Nothing Then
+            Try
+                strumienPlik.Close()
+            Catch
+            End Try
+
+            Try
+                strumienPlik.Dispose()
+            Catch
+            End Try
+        End If
 
         Try
             strumien.Close()
@@ -193,9 +223,11 @@ Public Class Polaczenie
                 Dim pocz As Integer = 0
 
                 Do While pocz < Zapytanie.ContentLength
-                    liczba_bajtow = strumien.Read(ZawartoscZapytania, pocz, ZawartoscZapytania.Length - pocz)
+                    liczba_bajtow = strumien.Read(_ZawartoscZapytania, pocz, _ZawartoscZapytania.Length - pocz)
                     pocz += liczba_bajtow
                 Loop
+
+                If SerwerHTTP.Ustawienia.ZapiszDanePrzychodzace Then strumienPlik.Write(_ZawartoscZapytania, 0, _ZawartoscZapytania.Length)
 
                 PrzetworzOdebraneDane()
 
@@ -256,6 +288,9 @@ Public Class Polaczenie
             If Zapytanie.Connection.ToLower = "close" Then Exit Sub
             OstatniaAktywnosc = Now
             Aktywny = False
+
+            If SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then bwp.Write(utf.GetBytes(vbCrLf & vbCrLf))
+
         Loop
 
     End Sub
@@ -275,20 +310,24 @@ Public Class Polaczenie
 
         DataSerwera = Now.ToUniversalTime
         _WyslanoOdpowiedz = False
-        ZapisanoOdwiedziny = False
         Aktywny = False
     End Sub
 
     Private Sub Wyslij(dane As Byte())
         bw.Write(dane)
+        If SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then bwp.Write(dane)
     End Sub
 
     Private Sub Wyslij(tekst As String)
-        bw.Write(utf.GetBytes(tekst))
+        Dim b As Byte() = utf.GetBytes(tekst)
+        bw.Write(b)
+        If SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then bwp.Write(b)
     End Sub
 
     Private Sub WyslijLinie(Optional tekst As String = "")
-        bw.Write(utf.GetBytes(tekst & vbCrLf))
+        Dim b As Byte() = utf.GetBytes(tekst & vbCrLf)
+        bw.Write(b)
+        If SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then bwp.Write(b)
     End Sub
 
     Private Function CzytajLinie() As String
@@ -303,7 +342,10 @@ Public Class Polaczenie
             stb.Append(z)
         Loop
 
-        Return stb.ToString
+        Dim str As String = stb.ToString
+        If SerwerHTTP.Ustawienia.ZapiszDanePrzychodzace Then bwp.Write(utf.GetBytes(stb.Append(vbCrLf).ToString))
+
+        Return str
     End Function
 
     Private Sub ZapiszOdwiedzinyKlientaHTTP(Optional tekst As String = "")

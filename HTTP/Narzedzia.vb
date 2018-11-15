@@ -21,6 +21,7 @@
     Public Const HTTP_WERSJA_1_1 As String = "HTTP/1.1"
     Public Const DATA_FORMAT As String = "d-MM-yyyy H:mm:ss"
     Public Const DATA_FOLDER As String = "yyyy-MM-dd H:mm:ss"
+    Public Const DATA_LOGI As String = "d-MM-yyyy H-mm-ss,fffff"
 
     Public Function SprzatnijDate(Data As Date) As Date
         Return New Date(Data.Year, Data.Month, Data.Day, Data.Hour, Data.Minute, Data.Second)

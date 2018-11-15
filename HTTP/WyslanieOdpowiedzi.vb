@@ -381,7 +381,7 @@
         WyslijLinie("Content-Length: " & dl)
         WyslijLinie()
 
-        If Metoda <> MetodaHTTP.HEAD Then bw.Write(b)
+        If Metoda <> MetodaHTTP.HEAD Then Wyslij(b)
     End Sub
 
 End Class

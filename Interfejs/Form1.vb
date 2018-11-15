@@ -28,6 +28,10 @@ Friend Class wndOkno
         ust.Port = UShort.Parse(txtPort.Text)
         ReDim Preserve ust.PrzetwarzaneRozszerzenia(ust.PrzetwarzaneRozszerzenia.Length)
         ust.PrzetwarzaneRozszerzenia(ust.PrzetwarzaneRozszerzenia.Length - 1) = "about"
+        ust.ListaAdresow = {Net.IPAddress.Parse("127.0.0.1")}
+        ust.TypBlokowaniaListy = TypBlokowania.Zezwol
+        ust.ZapiszDanePrzychodzace = True
+        ust.ZapiszDaneWychodzace = True
 
         ust.FunkcjaZwrotna = AddressOf Funkcja
         'ust.Funkcje = {
@@ -68,16 +72,19 @@ Friend Class wndOkno
         'test.Koniec += 1
         'End If
 
-        If pol.Zapytanie.Authorization Is Nothing Then
-            pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
-        Else
-            If pol.Zapytanie.Authorization.CzyZgodneHaslo("bb7") AndAlso pol.Zapytanie.Authorization.Metoda = MetodaUwierzytelniania.Zlozona Then
-                If Not pol.WyslijFolder Then pol.WyslijPlik(True)
-            Else
-                pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
-            End If
 
-        End If
+        'If pol.Zapytanie.Authorization Is Nothing Then
+        '    pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
+        'Else
+        '    If pol.Zapytanie.Authorization.CzyZgodneHaslo("bb7") AndAlso pol.Zapytanie.Authorization.Metoda = MetodaUwierzytelniania.Zlozona Then
+        '        If Not pol.WyslijFolder Then pol.WyslijPlik(True)
+        '    Else
+        '        pol.Wyslij401_Unauthorized("CzlowiekuKimTyJestes?", MetodaUwierzytelniania.Zlozona)
+        '    End If
+
+        'End If
+
+        If Not pol.WyslijFolder Then pol.WyslijPlik(True)
     End Sub
 
     Private Sub Funkcja2(pol As Polaczenie, dane As TestoweZapytanie)

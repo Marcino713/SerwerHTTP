@@ -1,6 +1,5 @@
 ﻿Imports System.Threading
 Imports System.Net.Sockets
-Imports HTTP
 
 Public Class Serwer
     Friend ReadOnly SERWER_NAZWA As String = "Serwer HTTP 1.1 im. Marcina Orczyka"
@@ -22,6 +21,7 @@ Public Class Serwer
     Private OdwBW As BinaryWriter
     Private IloscWpisow As Integer = 0
     Private slock_odwiedziny As New Object
+    Private slock_nowyplik As New Object
 
     Public ReadOnly Property CzyUruchomiony As Boolean
         Get
@@ -91,16 +91,40 @@ Public Class Serwer
 
     Private Sub PrzyjmujKlientow()
         Dim p As Polaczenie
+        Dim c As TcpClient
+        Dim a As IPAddress
+        Dim blokuj As Boolean
 
         Do Until ZamknijPrzyjmujKlientow
             Try
-                p = New Polaczenie(Serwer.AcceptTcpClient, Me)
+                c = Serwer.AcceptTcpClient
+                a = CType(c.Client.RemoteEndPoint, IPEndPoint).Address
+                blokuj = False
+
+                If Ustawienia.ListaAdresow IsNot Nothing Then
+                    Dim adr As IPAddress = (From ad In Ustawienia.ListaAdresow Where ad.Equals(a) Select ad).FirstOrDefault
+                    If Ustawienia.TypBlokowaniaListy = TypBlokowania.Blokuj AndAlso adr IsNot Nothing Then blokuj = True
+                    If Ustawienia.TypBlokowaniaListy = TypBlokowania.Zezwol AndAlso adr Is Nothing Then blokuj = True
+                End If
+
+                If blokuj Then
+                    Try
+                        c.Close()
+                    Catch
+                    End Try
+                    Continue Do
+                Else
+                    p = New Polaczenie(c, Me)
+                End If
+
             Catch
                 Exit Do
             End Try
 
             SyncLock slock_lista
-                If Polaczenia IsNot Nothing Then Polaczenia.Add(p)
+                If Polaczenia IsNot Nothing Then
+                    If Polaczenia.Count < Ustawienia.MaksLiczbaPolaczen Then Polaczenia.Add(p) Else p.Zamknij()
+                End If
             End SyncLock
         Loop
 
@@ -183,9 +207,37 @@ Public Class Serwer
 
     End Sub
 
+    Friend Function OtworzWolnyPlik() As FileStream
+        Dim nazwa As String = Ustawienia.FolderSerwera & "dane " & Now.ToString(DATA_LOGI)
+        Dim i As Integer = 1
+        Dim n As String
+
+        SyncLock slock_nowyplik
+            If Not File.Exists(nazwa & ".txt") Then
+                Return New FileStream(nazwa & ".txt", FileMode.Create)
+            End If
+
+            Do
+                n = nazwa & "-" & i.ToString() & ".txt"
+                If File.Exists(n) Then i += 1 Else Return New FileStream(n, FileMode.Create)
+            Loop
+        End SyncLock
+    End Function
+
 End Class
 
 Public Delegate Sub PrzetwarzanePolaczenie(DanePolaczenia As Polaczenie)
+
+Public Enum TypBlokowania
+    ''' <summary>
+    ''' Lista zawiera adresy, z ktorych polaczenia nalezy odrzucic, reszta bedzie akceptowana
+    ''' </summary>
+    Blokuj = 0
+    ''' <summary>
+    ''' Lista zawiera adresy, z ktorych polaczenia nalezy zaakceptowac, reszta bedzie odrzucana
+    ''' </summary>
+    Zezwol = 1
+End Enum
 
 Public Class UstawieniaSerwera
     Public Port As UShort = 80
@@ -198,6 +250,11 @@ Public Class UstawieniaSerwera
     Public ZapiszBledy As Boolean = True
     Public ZapiszOdwiedziny As Boolean = True
     Public OpisSerwera As String = ""
+    Public MaksLiczbaPolaczen As Integer = 100
+    Public ListaAdresow As IPAddress() = Nothing
+    Public TypBlokowaniaListy As TypBlokowania = TypBlokowania.Blokuj
+    Public ZapiszDanePrzychodzace As Boolean = False
+    Public ZapiszDaneWychodzace As Boolean = False
 End Class
 
 
