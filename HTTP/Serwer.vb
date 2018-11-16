@@ -90,7 +90,6 @@ Public Class Serwer
     End Sub
 
     Private Sub PrzyjmujKlientow()
-        Dim p As Polaczenie
         Dim c As TcpClient
         Dim a As IPAddress
         Dim blokuj As Boolean
@@ -98,32 +97,37 @@ Public Class Serwer
         Do Until ZamknijPrzyjmujKlientow
             Try
                 c = Serwer.AcceptTcpClient
-                a = CType(c.Client.RemoteEndPoint, IPEndPoint).Address
-                blokuj = False
-
-                If Ustawienia.ListaAdresow IsNot Nothing Then
-                    Dim adr As IPAddress = (From ad In Ustawienia.ListaAdresow Where ad.Equals(a) Select ad).FirstOrDefault
-                    If Ustawienia.TypBlokowaniaListy = TypBlokowania.Blokuj AndAlso adr IsNot Nothing Then blokuj = True
-                    If Ustawienia.TypBlokowaniaListy = TypBlokowania.Zezwol AndAlso adr Is Nothing Then blokuj = True
-                End If
-
-                If blokuj Then
-                    Try
-                        c.Close()
-                    Catch
-                    End Try
-                    Continue Do
-                Else
-                    p = New Polaczenie(c, Me)
-                End If
-
             Catch
                 Exit Do
             End Try
 
+            a = CType(c.Client.RemoteEndPoint, IPEndPoint).Address
+            blokuj = False
+
+            If Ustawienia.ListaAdresow IsNot Nothing Then
+                Dim adr As IPAddress = (From ad In Ustawienia.ListaAdresow Where ad.Equals(a) Select ad).FirstOrDefault
+                If Ustawienia.TypBlokowaniaListy = TypBlokowania.Blokuj AndAlso adr IsNot Nothing Then blokuj = True
+                If Ustawienia.TypBlokowaniaListy = TypBlokowania.Zezwol AndAlso adr Is Nothing Then blokuj = True
+            End If
+
+            If blokuj Then
+                Try
+                    c.Close()
+                Catch
+                End Try
+                Continue Do
+            End If
+
             SyncLock slock_lista
                 If Polaczenia IsNot Nothing Then
-                    If Polaczenia.Count < Ustawienia.MaksLiczbaPolaczen Then Polaczenia.Add(p) Else p.Zamknij()
+                    If Polaczenia.Count < Ustawienia.MaksLiczbaPolaczen Then
+                        Polaczenia.Add(New Polaczenie(c, Me))
+                    Else
+                        Try
+                            c.Close()
+                        Catch
+                        End Try
+                    End If
                 End If
             End SyncLock
         Loop

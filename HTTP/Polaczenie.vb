@@ -402,6 +402,8 @@ Public Class Polaczenie
             Case "ico" : typ = MIME_IMAGE_ICON
             Case "txt" : typ = MIME_TEXT_PLAIN
             Case "zip" : typ = MIME_APPLICATION_ZIP
+            Case "exe", "dll" : typ = MIME_APPLICATION_EXE
+            Case "coffee" : typ = MIME_TEXT_COFFEE
             Case Else
                 typ = MIME_APPLICATION_OCTET_STREAM
                 If SerwerHTTP.Ustawienia.ZapiszBledy Then bledy.DodajBlad(TypBledu.Typ_pliku, roz)
