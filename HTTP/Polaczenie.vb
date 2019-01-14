@@ -1,5 +1,7 @@
-﻿Imports System.Threading
+﻿Imports System.Net.Security
+Imports System.Threading
 Imports System.Net.Sockets
+Imports System.Security.Cryptography.X509Certificates
 
 Public Class Polaczenie
 
@@ -14,6 +16,7 @@ Public Class Polaczenie
     Private SerwerHTTP As Serwer
     Private utf As New UTF8Encoding()
     Private bledy As ZarzadzanieBledami
+    Private certyfikat As String = "od.p7b"
 
     Public ReadOnly Property WyslanoOdpowiedz As Boolean
         Get
@@ -23,7 +26,7 @@ Public Class Polaczenie
 
     'Obsługa połączenia
     Private klient As TcpClient
-    Private strumien As NetworkStream
+    Private strumien As SslStream
     Private br As BinaryReader
     Private bw As BinaryWriter
     Private strumienPlik As FileStream
@@ -108,12 +111,15 @@ Public Class Polaczenie
         End Get
     End Property
 
-    Friend Sub New(Klient As TcpClient, SerwerHTTP As Serwer)
+    Friend Sub New(Klient As TcpClient, SerwerHTTP As Serwer, sslStrumien As SslStream)
         Me.SerwerHTTP = SerwerHTTP
         bledy = New ZarzadzanieBledami(SerwerHTTP.Ustawienia.FolderSerwera)
         _AdresIP = Klient.Client.RemoteEndPoint.ToString
         Me.klient = Klient
-        strumien = Klient.GetStream
+        strumien = New SslStream(Klient.GetStream(), False)
+        strumien.AuthenticateAsServer(X509Certificate.CreateFromCertFile(certyfikat))
+        strumien.ReadTimeout = 5000
+        strumien.WriteTimeout = 5000
         br = New BinaryReader(strumien)
         bw = New BinaryWriter(strumien)
         If SerwerHTTP.Ustawienia.ZapiszDanePrzychodzace OrElse SerwerHTTP.Ustawienia.ZapiszDaneWychodzace Then

@@ -1,4 +1,5 @@
-﻿Imports System.Threading
+﻿Imports System.Net.Security
+Imports System.Threading
 Imports System.Net.Sockets
 
 Public Class Serwer
@@ -121,7 +122,7 @@ Public Class Serwer
             SyncLock slock_lista
                 If Polaczenia IsNot Nothing Then
                     If Polaczenia.Count < Ustawienia.MaksLiczbaPolaczen Then
-                        Polaczenia.Add(New Polaczenie(c, Me))
+                        Polaczenia.Add(New Polaczenie(c, Me, New SslStream(c.GetStream())))
                     Else
                         Try
                             c.Close()
