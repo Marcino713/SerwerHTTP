@@ -122,7 +122,7 @@ Public Class Serwer
             SyncLock slock_lista
                 If Polaczenia IsNot Nothing Then
                     If Polaczenia.Count < Ustawienia.MaksLiczbaPolaczen Then
-                        Polaczenia.Add(New Polaczenie(c, Me, New SslStream(c.GetStream())))
+                        Polaczenia.Add(New Polaczenie(c, Me))
                     Else
                         Try
                             c.Close()

@@ -111,7 +111,7 @@ Public Class Polaczenie
         End Get
     End Property
 
-    Friend Sub New(Klient As TcpClient, SerwerHTTP As Serwer, sslStrumien As SslStream)
+    Friend Sub New(Klient As TcpClient, SerwerHTTP As Serwer)
         Me.SerwerHTTP = SerwerHTTP
         bledy = New ZarzadzanieBledami(SerwerHTTP.Ustawienia.FolderSerwera)
         _AdresIP = Klient.Client.RemoteEndPoint.ToString
