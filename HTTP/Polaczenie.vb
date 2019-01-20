@@ -116,8 +116,11 @@ Public Class Polaczenie
         bledy = New ZarzadzanieBledami(SerwerHTTP.Ustawienia.FolderSerwera)
         _AdresIP = Klient.Client.RemoteEndPoint.ToString
         Me.klient = Klient
-        strumien = New SslStream(Klient.GetStream(), False)
-        strumien.AuthenticateAsServer(X509Certificate.CreateFromCertFile(certyfikat))
+        Dim cert As X509Certificate = new X509Certificate("c:\odcert.pfx", "123")
+        Dim certEx As Byte() = cert.Export(X509ContentType.Cert)
+        Dim cer As X509Certificate = New X509Certificate(certEx)
+        strumien = New SslStream(Klient.GetStream(), true)
+        strumien.AuthenticateAsServer(cer)
         strumien.ReadTimeout = 5000
         strumien.WriteTimeout = 5000
         br = New BinaryReader(strumien)
