@@ -52,7 +52,7 @@ Partial Class wndOkno
         Me.txtPort.Name = "txtPort"
         Me.txtPort.Size = New System.Drawing.Size(144, 20)
         Me.txtPort.TabIndex = 1
-        Me.txtPort.Text = "80"
+        Me.txtPort.Text = "443"
         '
         'btnStart
         '
@@ -121,7 +121,7 @@ Partial Class wndOkno
         Me.mnuStan.Size = New System.Drawing.Size(142, 22)
         Me.mnuStan.Text = "Zatrzymany"
         '
-        'wndOkno2
+        'wndOkno
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
