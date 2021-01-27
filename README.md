@@ -1,1 +1,1 @@
-# SerwerHTTP2
+# SerwerHTTP 1.1
